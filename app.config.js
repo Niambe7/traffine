@@ -1,29 +1,50 @@
 // app.config.js
-require('dotenv').config();  // charge ton .env et expose process.env.GOOGLE_CLIENT_ID
+require('dotenv').config();  // charge ton .env et expose process.env.*
 
-module.exports = {
+export default ({ config }) => ({
+  ...config,
   expo: {
+    ...config.expo,
     name: "mobile-supmap",
     slug: "mobile-supmap",
     version: "1.0.0",
     sdkVersion: "53.0.0",
-    platforms: ["ios","android","web"],
+    platforms: ["ios", "android", "web"],
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "mobilesupmap",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
 
-    // ⬇️ ajoute ici ta clé Google
     extra: {
-      googleClientId: process.env.GOOGLE_CLIENT_ID
+      googleWebClientId: process.env.WEB_GOOGLE_CLIENT_ID,
+      googleAndroidClientId: process.env.ANDROID_GOOGLE_CLIENT_ID,
+      googleIosClientId: process.env.IOS_GOOGLE_CLIENT_ID,
+      eas: {
+        projectId: "acb885a3-6b2e-4296-8b64-c8273f8417fa"
+      }
+    },
+
+    // EAS Update configuration
+    updates: {
+      url: "https://u.expo.dev/acb885a3-6b2e-4296-8b64-c8273f8417fa",
+      fallbackToCacheTimeout: 0
+    },
+    runtimeVersion: {
+      policy: "sdkVersion"
     },
 
     assetBundlePatterns: ["**/*"],
-    updates: { fallbackToCacheTimeout: 0 },
 
-    ios: { supportsTablet: true },
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.niambe7.mobilesupmap",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false
+      }
+    },
     android: {
+      package: "com.niambe7.mobilesupmap",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -38,6 +59,7 @@ module.exports = {
 
     plugins: [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-splash-screen",
         {
@@ -48,6 +70,9 @@ module.exports = {
         }
       ]
     ],
-    experiments: { typedRoutes: true }
+
+    experiments: {
+      typedRoutes: true
+    }
   }
-};
+});
