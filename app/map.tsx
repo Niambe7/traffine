@@ -654,10 +654,25 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
     <Animated.View style={[styles.drawer, { left: drawerAnim }]}>
       <TouchableWithoutFeedback>
         <View>
-          <Text style={styles.drawerTitle}>Menu</Text>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutText}>Déconnexion</Text>
-          </TouchableOpacity>
+               {/* Logo identique à Login */}
+        <Image
+          source={require('../assets/images/logo.webp')}
+          style={styles.drawerLogo}
+          resizeMode="contain"
+        />
+
+            {/* ←— N'affiche la userBox que si user existe */}
+      {user && (
+        <View style={styles.userBox}>
+          <Ionicons name="person-circle" size={24} color="#a96fea" />
+          <Text style={styles.usernameText}>
+            {user.name || "Utilisateur"}
+          </Text>
+        </View>
+      )}
+
+         
+         <Text style={styles.drawerTitle}>Menu</Text>
 
           <TouchableOpacity
         onPress={() => {
@@ -668,10 +683,15 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
             setCameraVisible(true);
           }
         }}
-        style={[styles.logoutButton, { backgroundColor: '#007bff', marginTop: 12 }]}
+        style={[styles.logoutButton, { backgroundColor: '#a96fea', marginTop: 12 }]}
       >
-        <Text style={styles.logoutText}>Scanner un code-barres</Text>
+        <Text style={styles.scanText}>Scanner un code-barres</Text>
       </TouchableOpacity>
+
+         
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>Déconnexion</Text>
+          </TouchableOpacity>
 
         </View>
       </TouchableWithoutFeedback>
@@ -679,7 +699,7 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
 
     {/* ⑥ Le bouton hamburger en tout dernier (ou premier, selon ton goût) */}
     <TouchableOpacity style={styles.menuIcon} onPress={toggleDrawer}>
-      <Ionicons name="menu" size={32} color="#333" />
+      <Ionicons name="menu" size={32} color="#a96fea" />
     </TouchableOpacity>
 
       {renderAlertDialog()}
@@ -743,7 +763,7 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
 
         {/* Drawer menu */}
         <TouchableOpacity style={styles.menuIcon} onPress={toggleDrawer}>
-  <Ionicons name="menu" size={32} color="#333" />
+  <Ionicons name="menu" size={32} color="#a96fea" />
 </TouchableOpacity>
 
   {drawerOpen && (
@@ -763,8 +783,14 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
             </TouchableOpacity>
             <View style={styles.switchContainer}>
               <Text style={{flex:1}}>Éviter les péages</Text>
-              <Switch value={avoidTolls} onValueChange={setAvoidTolls} />
-            </View>
+              <Switch
+                value={avoidTolls}
+                onValueChange={setAvoidTolls}
+                // piste grise à false, bleue à true
+                trackColor={{ false: "#ccc", true: "#a96fea" }}
+                // curseur blanc à false, bleu à true
+                thumbColor={avoidTolls ? "#a96fea" : "#a96fea"}
+              />            </View>
             <TouchableOpacity onPress={handleItinerary} style={styles.searchBtn}>
               <Text style={styles.searchBtnText}>Rechercher</Text>
             </TouchableOpacity>
@@ -888,6 +914,26 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     zIndex: 10,
   },
+  drawerLogo: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  userBox: {
+    flexDirection: 'row',       // icône + texte côte à côte
+    alignItems: 'center',       // alignement vertical
+    backgroundColor: '#f0f0f0', // fond clair
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,           // espace avant le titre “Menu”
+  },
+  usernameText: {
+    marginLeft: 8,              // espace après l’icône
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
   closeCameraTxt: {
     color: '#fff',
     fontWeight: 'bold',
@@ -978,17 +1024,19 @@ const styles = StyleSheet.create({
   // drawer
   menuIcon: { position:"absolute", top:50, left:20, backgroundColor:"#fff", borderRadius:20, padding:8, elevation:5, zIndex:10 },
   // drawer: { position:"absolute", top:0, bottom:0, width: screenWidth*0.6, backgroundColor:"#fff", padding:20, elevation:10, zIndex:20 },
-  drawerTitle: { fontSize:20, marginBottom:20 },
-  logoutButton: { backgroundColor:"#dc3545", padding:10, borderRadius:6 },
-  logoutText: { color:"#fff", textAlign:"center", fontWeight:"600" },
+  drawerTitle: { fontSize:23, marginBottom:20 },
+  logoutButton: { backgroundColor:"#a96fea", padding:10, borderRadius:16 , marginTop: 12  },
+  logoutText: { color:"#fff", textAlign:"center", fontWeight:"600"   },
+    scanText: { color:"#fff", textAlign:"center", fontWeight:"600"   },
+
 
   // search form
   // controls: { position:"absolute", bottom:20, left:20, right:20, backgroundColor:"#fff", borderRadius:10, padding:15, elevation:5, zIndex:10 },
   input: { borderWidth:1, borderColor:"#ccc", padding:10, marginBottom:10, borderRadius:8 },
-  currentLocBtn: { backgroundColor:"#eee", paddingVertical:10, borderRadius:6, marginBottom:10 },
-  currentLocText: { textAlign:"center", fontWeight:"600" },
+  currentLocBtn: { backgroundColor:"#a96fea", paddingVertical:10, borderRadius:6, marginBottom:10 },
+  currentLocText: { color:"#fff", textAlign:"center", fontWeight:"600" },
   switchContainer: { flexDirection:"row", alignItems:"center", marginBottom:15 },
-  searchBtn: { backgroundColor:"#007bff", paddingVertical:12, borderRadius:8 },
+  searchBtn: { backgroundColor:"#a96fea", paddingVertical:12, borderRadius:8 },
   searchBtnText: { color:"#fff", textAlign:"center", fontWeight:"600" },
 
   // simulation & navigation controls

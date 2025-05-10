@@ -17,7 +17,7 @@ export default ({ config }) => ({
     newArchEnabled: true,
 
     extra: {
-      googleWebClientId: process.env.WEB_GOOGLE_CLIENT_ID,
+      googleClientId: process.env.WEB_GOOGLE_CLIENT_ID,
       googleAndroidClientId: process.env.ANDROID_GOOGLE_CLIENT_ID,
       googleIosClientId: process.env.IOS_GOOGLE_CLIENT_ID,
       eas: {
@@ -59,7 +59,6 @@ export default ({ config }) => ({
 
     plugins: [
       "expo-router",
-      "expo-dev-client",
       [
         "expo-splash-screen",
         {
