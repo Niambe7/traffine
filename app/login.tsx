@@ -56,8 +56,14 @@ export default function LoginScreen() {
     try {
       const data = await loginUser(email, password);
       if (data.token) {
-        login(data.user, data.token);
-        router.replace("/map");
+        // on recrée un objet User conforme à votre type { id, email, name }
+      const me = {
+        id:    data.user.id,
+        email: data.user.email,
+        name:  data.user.username,    // <-- mappe le username ici
+      };
+      login(me, data.token);
+      router.replace("/map");
       } else {
         Alert.alert("Erreur", data.message || "Connexion refusée");
       }

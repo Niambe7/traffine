@@ -473,6 +473,10 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
       setCurrentItineraryId(savedItinerary.id);
     } catch (err: any) {
       console.warn("Échec de l'enregistrement de l'itinéraire :", err);
+        // Remise à plat de l'état
+    setChoosingRoute(false);
+    setItineraries([]);
+      setShowSearchBox(true);
       Alert.alert("Erreur", "Impossible de sauvegarder l'itinéraire");
       return;
     }
@@ -685,7 +689,7 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
         }}
         style={[styles.logoutButton, { backgroundColor: '#a96fea', marginTop: 12 }]}
       >
-        <Text style={styles.scanText}>Scanner un code-barres</Text>
+        <Text style={styles.scanText}>Scanner un qrcode</Text>
       </TouchableOpacity>
 
          
@@ -711,7 +715,7 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
               )}
               <Polyline
                 coordinates={routePoints}
-                strokeColor="#007bff"
+                strokeColor="#a96fea"
                 strokeWidth={isSimulating || isNavigating ? 6 : 3}
               />
               <Marker coordinate={routePoints[0]} title="Départ" pinColor="green" />
@@ -1018,7 +1022,7 @@ const styles = StyleSheet.create({
   routeCardFastest: { borderColor:"#007bff", borderWidth:2 },
   routeLabel: { fontWeight:"600", marginBottom:6 },
   routeInfo: { color:"#555", marginBottom:8 },
-  loadButton: { backgroundColor:"#007bff", paddingVertical:8, borderRadius:6 },
+  loadButton: { backgroundColor:"#a96fea", paddingVertical:8, borderRadius:6 },
   loadButtonText: { color:"#fff", textAlign:"center", fontWeight:"600" },
 
   // drawer
@@ -1041,8 +1045,8 @@ const styles = StyleSheet.create({
 
   // simulation & navigation controls
   navigationContainer: { position:"absolute", bottom:30, left:20, right:20, alignItems:"center", zIndex:15 },
-  navButton: { backgroundColor:"#007bff", paddingVertical:12, borderRadius:8, width:"70%", marginVertical:5 },
-  navButtonNav: { backgroundColor:"#28a745", paddingVertical:12, borderRadius:8, width:"70%", marginVertical:5 },
+  navButton: { backgroundColor:"#a96fea", paddingVertical:12, borderRadius:8, width:"70%", marginVertical:5 },
+  navButtonNav: { backgroundColor:"#a96fea", paddingVertical:12, borderRadius:8, width:"70%", marginVertical:5 },
   stopButton: { backgroundColor:"#dc3545" },
   navButtonText: { color:"#fff", textAlign:"center", fontWeight:"600" },
   disabled: { opacity:0.5 },
