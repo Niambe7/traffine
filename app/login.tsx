@@ -18,7 +18,7 @@ import { loginUser, loginWithGoogle } from "../services/auth.service";
 import { useAuth } from "../context/AuthContext";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-WebBrowser.maybeCompleteAuthSession(); // nécessaire pour Expo Go
+WebBrowser.maybeCompleteAuthSession(); 
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -60,7 +60,7 @@ export default function LoginScreen() {
       const me = {
         id:    data.user.id,
         email: data.user.email,
-        name:  data.user.username,    // <-- mappe le username ici
+        name:  data.user.username,    
       };
       login(me, data.token);
       router.replace("/map");

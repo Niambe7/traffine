@@ -18,11 +18,12 @@ export interface StepDTO {
  */
 export interface ItineraryOptionDTO {
   id: number;
-  distance: number;           // en mètres
-  duration: number;           // en secondes
+  distance: number;
+  duration: number;
   toll_free: boolean;
   route_points: LatLng[];     // pour affichage
-  steps: StepDTO[];           // instructions étape par étape
+  steps: StepDTO[];           // instructions
+  encoded_polyline: string;   // ← NOUVEAU
 }
 
 /**
@@ -45,25 +46,34 @@ export interface ItineraryDTO {
  * Appelle POST /itineraries/search
  * et retourne l’array d’options (au moins 2).
  */
+export interface ItineraryOptionDTO {
+  id: number;
+  distance: number;
+  duration: number;
+  toll_free: boolean;
+  route_points: LatLng[];     // pour affichage
+  steps: StepDTO[];           // instructions
+  encoded_polyline: string;   // ← NOUVEAU
+}
+
 export const fetchItineraries = async (
   start: string,
   end: string,
   avoidTolls: boolean
 ): Promise<ItineraryOptionDTO[]> => {
-  const payload = { start_location: start, end_location: end, avoidTolls };
-
-  const res = await api.post("/itineraries/itineraries/search", payload);
-  const raw: any[] = res.data.itineraries ?? [];
-
-  return raw.map(opt => ({
-    id: opt.id,
-    distance: opt.distance,
-    duration: opt.duration,
-    toll_free: opt.toll_free,
-    route_points: opt.route_points,
-    steps: opt.steps,
+  const res = await api.post("/itineraries/itineraries/search", { start_location: start, end_location: end, avoidTolls });
+  return (res.data.itineraries ?? []).map((opt: ItineraryOptionDTO) => ({
+    id:              opt.id,
+    distance:        opt.distance,
+    duration:        opt.duration,
+    toll_free:       opt.toll_free,
+    route_points:    opt.route_points,       
+    steps:           opt.steps,
+    encoded_polyline: opt.encoded_polyline 
   }));
 };
+
+
 
 /**
  * Enregistre l'itinéraire sélectionné en base
@@ -100,7 +110,6 @@ export const getItineraryById = async (
 ): Promise<ItineraryDTO> => {
   // On appelle GET sur /itineraries/itineraries/{id}
   const res = await api.get("/itineraries/itineraries/" + itineraryId);
-  // La réponse a ce format : { itinerary: { id, user_id, start_location, end_location, route_points: [...] } }
   if (!res.data.itinerary) {
     throw new Error(`Itinéraire ${itineraryId} non trouvé`);
   }

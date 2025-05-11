@@ -172,10 +172,7 @@ const [scanned, setScanned] = useState(false);
       s.on('connect',       () => console.log('✅ Socket connectée, id=', s.id));
       s.on('connect_error', (err: Error) => console.error('❌ Erreur socket', err.message));
 
-      // s.on('notification', (payload: { message: string; data: any }) => {
-      //   setAlertData({ alertType: 'contribute', message: payload.message, data: payload.data });
-      // });
-
+     
       s.on('recalculate-itinerary', (payload: { message: string; data: any }) => {
         setAlertData({ alertType: 'recalculate', message: payload.message, data: payload.data });
       });
@@ -334,7 +331,7 @@ const [scanned, setScanned] = useState(false);
         }
     
         // 6) Récupère l'ancienne route si besoin
-        //    Utile si vous voulez l'afficher en parallèle
+  
         const oldPtsArray: any[] = Array.isArray(json.route_points)
           ? json.route_points
           : [];
@@ -354,9 +351,6 @@ const [scanned, setScanned] = useState(false);
           longitude: p.lng
         }));
     
-        // (Optionnel) Transformation de l'ancienne route si vous stockez oldRoutePoints
-        // const oldCoords: Coordinate[] = oldPtsArray.map(p => ({ latitude: p.lat, longitude: p.lng }));
-        // setOldRoutePoints(oldCoords);
     
         // 9) Mise à jour de l'état
         setRoutePoints(newCoords);
@@ -460,55 +454,61 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
   };
 
   const handleLoadItinerary = async (choice: ItineraryOptionDTO) => {
-    if (!user) {
-      Alert.alert("Erreur", "Utilisateur non identifié");
-      return;
-    }
-  
-    // 1) Sauvegarde de l'itinéraire en base
-    let savedItinerary;
-    try {
-      savedItinerary = await loadItinerary(user.id, choice, start, end);
-      // On stocke l'ID pour la simulation / notifications
-      setCurrentItineraryId(savedItinerary.id);
-    } catch (err: any) {
-      console.warn("Échec de l'enregistrement de l'itinéraire :", err);
-        // Remise à plat de l'état
+  if (!user) {
+    Alert.alert("Erreur", "Utilisateur non identifié");
+    return;
+  }
+
+  // 1) Sauvegarde de l'itinéraire en base
+  let savedItinerary;
+  try {
+    savedItinerary = await loadItinerary(user.id, choice, start, end);
+    setCurrentItineraryId(savedItinerary.id);
+  } catch (err: any) {
+    console.warn("Échec de l'enregistrement de l'itinéraire :", err);
+    // Remise à plat de l'état
     setChoosingRoute(false);
     setItineraries([]);
-      setShowSearchBox(true);
-      Alert.alert("Erreur", "Impossible de sauvegarder l'itinéraire");
-      return;
-    }
-  
-    // 2) SnapToRoads pour lisser la route
-    try {
-      const path = choice.route_points.map(p => `${p.lat},${p.lng}`).join("|");
-      const response = await fetch(
-        `https://roads.googleapis.com/v1/snapToRoads?path=${encodeURIComponent(
-          path
-        )}&interpolate=true&key=${GOOGLE_ROADS_API_KEY}`
-      );
-      const snapped = await response.json();
-      const coords = snapped.snappedPoints.map((p: any) => ({
-        latitude: p.location.latitude,
-        longitude: p.location.longitude,
-      }));
-      setRoutePoints(coords);
-    } catch (err) {
-      console.warn("SnapToRoads échoué, fallback :", err);
-      setRoutePoints(
-        choice.route_points.map(p => ({ latitude: p.lat, longitude: p.lng }))
-      );
-    }
-  
-    // 3) Mise à jour de l'UI
-    setChoosingRoute(false);
-    setIsSimulating(false);
-    setSimIndex(0);
-    Alert.alert("Itinéraire chargé", `Option ${choice.id + 1} sélectionnée`);
-  };
-  
+    setShowSearchBox(true);
+    Alert.alert("Erreur", "Impossible de sauvegarder l'itinéraire");
+    return;
+  }
+
+  // 2) SnapToRoads pour lisser la route
+  let coords: Coordinate[];
+  try {
+    const path = choice.route_points.map(p => `${p.lat},${p.lng}`).join("|");
+    const response = await fetch(
+      `https://roads.googleapis.com/v1/snapToRoads?path=${encodeURIComponent(path)}&interpolate=true&key=${GOOGLE_ROADS_API_KEY}`
+    );
+    const snapped = await response.json();
+    coords = snapped.snappedPoints.map((p: any) => ({
+      latitude: p.location.latitude,
+      longitude: p.location.longitude,
+    }));
+  } catch (err) {
+    console.warn("SnapToRoads échoué, fallback :", err);
+    coords = choice.route_points.map(p => ({
+      latitude: p.lat,
+      longitude: p.lng,
+    }));
+  }
+
+  // 3) Mise à jour de l'UI
+  setRoutePoints(coords);
+  setChoosingRoute(false);
+  setIsSimulating(false);
+  setSimIndex(0);
+
+  // 4) Centrer et zoomer sur l'itinéraire chargé
+  mapRef.current?.fitToCoordinates(coords, {
+    edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+    animated: true,
+  });
+
+  Alert.alert("Itinéraire chargé", `Option ${choice.id + 1} sélectionnée`);
+};
+
   
 
   // Simulation
@@ -534,20 +534,6 @@ async function handleConfirm(incidentId: number, confirmed: boolean, carPosition
       const curr = routePoints[index];
       const next = routePoints[index + 1];
   
-      // 1) Envoi "fire-and-forget" de la position au user-service
-      // fetch('https://api.supmap-server.pp.ua/users/location/update', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     userId: user?.id || "",
-      //     latitude: curr.latitude,
-      //     longitude: curr.longitude
-      //   })
-      // })
-      // .then(res => console.log(`[Update] status ${res.status} for step ${index}`))
-      // .catch(err => console.warn('[Update] erreur envoi position', err));
 
 
       fetch('https://api.supmap-server.pp.ua/users/recalculate/itinerary/notify-recalculate', {
@@ -925,15 +911,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   userBox: {
-    flexDirection: 'row',       // icône + texte côte à côte
-    alignItems: 'center',       // alignement vertical
-    backgroundColor: '#f0f0f0', // fond clair
-    padding: 10,
+    flexDirection: 'row',       
+    alignItems: 'center',       
+    backgroundColor: '#f0f0f0', 
     borderRadius: 8,
-    marginBottom: 16,           // espace avant le titre “Menu”
+    marginBottom: 16,     
   },
   usernameText: {
-    marginLeft: 8,              // espace après l’icône
+    marginLeft: 8,             
     fontSize: 16,
     fontWeight: '500',
     color: '#333',
@@ -968,7 +953,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    // backgroundColor: 'rgba(0,0,0,0.2)', // si tu veux un léger fondu
     zIndex: 5,
   },
   drawer: {
@@ -979,7 +963,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     elevation: 10,
-    zIndex: 999,      // plus haut que le backdrop
+    zIndex: 999,   
   },
 
   dialog: {
@@ -1014,8 +998,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center'
   },
-  // itinerary selector
-  // routeSelectorContainer: { position: "absolute", bottom: 100, width: "100%", height: 160, backgroundColor: "rgba(255,255,255,0.9)", zIndex:20 },
+
   routeSelectorScroll: { flexGrow:0, height:"100%" },
   routeSelectorContent: { paddingHorizontal:10, flexDirection:"row", alignItems:"flex-start" },
   routeCard: { width:220, marginRight:12, padding:12, borderRadius:8, backgroundColor:"#fff", shadowColor:"#000", shadowOpacity:0.2, shadowRadius:4, elevation:3, justifyContent:"space-between" },
